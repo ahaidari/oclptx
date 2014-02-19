@@ -61,7 +61,7 @@ class SampleManager{
       float const GetThetaData(int aFiberNum, int aSamp, int aX, int aY, int aZ);
       float const GetPhiData(int aFiberNum, int aSamp, int aX, int aY, int aZ);
       float const GetfData(int aFiberNum, int aSamp, int aX, int aY, int aZ);
-      const short int* GetSeedMaskToArray();
+      const unsigned short int* GetSeedMaskToArray();
       const volume<short int>* GetSeedMask();
       
       //WARNING: If you use these getters, you must access data from the BedpostXData vector as follows:

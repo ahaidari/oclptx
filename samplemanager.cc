@@ -223,7 +223,7 @@ const volume<short int>* SampleManager::GetSeedMask()
 	return &_seedMask;
 }
 
-const short int* SampleManager::GetSeedMaskToArray()
+const unsigned short int* SampleManager::GetSeedMaskToArray()
 {
    const int maxZ = _seedMask.maxz();
    const int maxY = _seedMask.maxy();
@@ -235,7 +235,7 @@ const short int* SampleManager::GetSeedMaskToArray()
    const int sizeY = _seedMask.ysize();
    const int sizeZ = _seedMask.zsize();
    
-   short int* target = new short int[sizeX * sizeY * sizeZ];
+   unsigned short int* target = new unsigned short int[sizeX * sizeY * sizeZ];
    for (int z = minZ; z <= maxZ; z++)
    {
      for (int y = minY; y <= maxY; y++)
