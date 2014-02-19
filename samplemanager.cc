@@ -72,15 +72,12 @@ void SampleManager::LoadBedpostDataHelper(
 
    if(aMask.xsize() > 0)
    {
-      std::cout<<"Reached Mask"<<endl;
       //_thetaSamples.push_back(loadedVolume4DTheta.matrix(aMask));
       //_phiSamples.push_back(loadedVolume4DPhi.matrix(aMask));
       //_fSamples.push_back(loadedVolume4Df.matrix(aMask));
    }
    else
    {
-      //No mask case
-      std::cout<<"Reached No Mask"<<endl;
       PopulateMemberParameters(loadedVolume4DTheta, _thetaData, loadedVolume4DTheta[0], aFiberNum);
       PopulateMemberParameters(loadedVolume4DPhi, _phiData, loadedVolume4DPhi[0], aFiberNum);
       PopulateMemberParameters(loadedVolume4Df, _fData, loadedVolume4Df[0], aFiberNum);
@@ -94,20 +91,16 @@ void SampleManager::PopulateMemberParameters(
   const int aFiberNum)
 {
   
-   const int maxT = aLoadedData.maxt();
-   const int minT = aLoadedData.mint();
-   const int maxZ = aLoadedData.maxz();
-   const int maxY = aLoadedData.maxy();
-   const int maxX = aLoadedData.maxx();
-   const int nx = aLoadedData.maxx();
-   const int ny = aLoadedData.maxy();
-   const int nz = aLoadedData.maxz();
+   const int ns = aLoadedData.tsize();
+   const int nx = aLoadedData.xsize();
+   const int ny = aLoadedData.ysize();
+   const int nz = aLoadedData.zsize();
    
-   aTargetContainer.data.push_back( new float[(maxT)*(nx*ny*nz) + (maxZ)*(nx*ny) + (maxY)*nx + (maxX)] );
+   aTargetContainer.data.push_back( new float[ns*nx*ny*nz] );
    aTargetContainer.nx = nx;
    aTargetContainer.ny = ny;
    aTargetContainer.nz = nz;
-   aTargetContainer.ns = maxT;
+   aTargetContainer.ns = ns;
    
    int xoff = aLoadedData[0].minx() - aMaskParams.minx();
    int yoff = aLoadedData[0].miny() - aMaskParams.miny();
@@ -120,9 +113,9 @@ void SampleManager::PopulateMemberParameters(
         {
            if (aMaskParams(x,y,z) > 0)
            {
-              for (int t = minT; t <= maxT; t++)
+              for (int t = aLoadedData.mint(); t <= aLoadedData.maxt(); t++)
               {
-                 aTargetContainer.data.at(aFiberNum)[(t)*(nx*ny*nz) + (z)*(nx*ny) + (y)*nx + (x)] = aLoadedData[t](x+xoff,y+yoff,z+zoff);
+                 aTargetContainer.data.at(aFiberNum)[t*nx*ny*nz + z*nx*ny + y*nx + x] = aLoadedData[t](x+xoff,y+yoff,z+zoff);
               }
            }
         }
@@ -130,7 +123,6 @@ void SampleManager::PopulateMemberParameters(
   }
 }
 
-//Loading BedpostData: No Masks.
 void SampleManager::LoadBedpostData(const std::string& aBasename)
 {
    std::cout<<"Loading Bedpost samples....."<<std::endl;
@@ -205,6 +197,14 @@ void SampleManager::ParseCommandLine(int argc, char** argv)
       }
       std::cout<<"Running in simple mode"<<std::endl;
       this->LoadBedpostData(_oclptxOptions.basename.value());
+      if(_oclptxOptions.seedref.value() == "")
+      {
+		  NEWIMAGE::read_volume(_seedMask, _oclptxOptions.maskfile.value());
+	  }
+	  else
+	  {
+		  NEWIMAGE::read_volume(_seedMask, _oclptxOptions.seedref.value());
+	  }
    }
    else if (_oclptxOptions.network.value())
    {
@@ -217,6 +217,37 @@ void SampleManager::ParseCommandLine(int argc, char** argv)
 }
 
 //AFSHIN TODO: Implement Masks
+
+const volume<short int>* SampleManager::GetSeedMask()
+{
+	return &_seedMask;
+}
+
+const short int* SampleManager::GetSeedMaskToArray()
+{
+   const int maxZ = _seedMask.maxz();
+   const int maxY = _seedMask.maxy();
+   const int maxX = _seedMask.maxx();
+   const int minZ = _seedMask.minz();
+   const int minY = _seedMask.miny();
+   const int minX = _seedMask.minx();
+   const int sizeX = _seedMask.xsize();
+   const int sizeY = _seedMask.ysize();
+   const int sizeZ = _seedMask.zsize();
+   
+   short int* target = new short int[sizeX * sizeY * sizeZ];
+   for (int z = minZ; z <= maxZ; z++)
+   {
+     for (int y = minY; y <= maxY; y++)
+     {
+        for (int x = minX; x <= maxX; x++)
+        {
+			target[z*sizeX*sizeY + y*sizeX + x] = _seedMask(x,y,z);
+        }
+     }
+   }
+   return target;
+}
 
 float const SampleManager::GetThetaData(int aFiberNum, int aSamp, int aX, int aY, int aZ)
 {

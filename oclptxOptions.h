@@ -199,7 +199,7 @@ inline oclptxOptions::oclptxOptions():
    //AFSHIN TODO: Look at these.
    maskfile(std::string("-m,--mask"),"",
       std::string("Bet binary mask file in diffusion space"),
-      false, requires_argument),
+      true, requires_argument),
    seedfile(std::string("-x,--seed"),"",
       std::string("Seed volume or list (ascii text file) of volumes and/or surfaces"),
       false, requires_argument),

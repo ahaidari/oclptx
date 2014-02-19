@@ -50,16 +50,19 @@ class SampleManager{
 	public:
       static SampleManager& GetInstance();
       ~SampleManager();
-
+      
+	  //As of February 19th, you require 2 arguments to parse: a set of data, and a mask.
+	  //Currently, you can load a preset mask (we are missing the initializing seedmask in our sample space, so for now,
+	  //We just use a given mask, although the concept is the same. That volume is stored in a member variable here.
       void ParseCommandLine(int argc, char** argv);
       void LoadBedpostData(const std::string& aBasename);
-      //LoadBedpostData(
-      //  const std::string& aBasename, const volume<float>& aMask);
 
       //Getters
       float const GetThetaData(int aFiberNum, int aSamp, int aX, int aY, int aZ);
       float const GetPhiData(int aFiberNum, int aSamp, int aX, int aY, int aZ);
       float const GetfData(int aFiberNum, int aSamp, int aX, int aY, int aZ);
+      const short int* GetSeedMaskToArray();
+      const volume<short int>* GetSeedMask();
       
       //WARNING: If you use these getters, you must access data from the BedpostXData vector as follows:
       //Ex Theta: thetaData.data.at(aFiberNum)[(aSamp)*(nx*ny*nz) + (aZ)*(nx*ny) + (aY)*nx + (aX)]
@@ -68,9 +71,7 @@ class SampleManager{
       //See definition of GetThetaData(...) above for example. 
       const BedpostXData* GetThetaDataPtr();
       const BedpostXData* GetPhiDataPtr();
-      const BedpostXData* GetFDataPtr();
-      
-      //const 
+      const BedpostXData* GetFDataPtr(); 
 
 	private:
       SampleManager();
@@ -94,6 +95,7 @@ class SampleManager{
       static SampleManager* _manager;
 
       oclptxOptions& _oclptxOptions;
+      volume<short int> _seedMask;
       BedpostXData _thetaData;
       BedpostXData _phiData;
       BedpostXData _fData;
