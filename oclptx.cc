@@ -110,9 +110,9 @@ int main(int argc, char *argv[] )
             }
          }
       }
-      const volume<short int>* seedMaskVol = s_manager.GetSeedMask();
+      const volume<short int>* seedMaskVol = s_manager.GetBrainMask();
       //Access this array like so for a given x,y,z: seedMask[z*seedMaskVol.xsize()*seedMaskVol.ysize() + y*seedMaskVol.zsize() + x]
-      const unsigned short int* seedMask = s_manager.GetSeedMaskToArray();
+      const unsigned short int* seedMask = s_manager.GetBrainMaskToArray();
 
       cout<<"Count of All Data = "<<countAll<<endl;
       cout<<"Count of Non Zero Data = "<<countNonZero<<endl;

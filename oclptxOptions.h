@@ -328,7 +328,7 @@ inline oclptxOptions::oclptxOptions():
 
    sampvox(std::string("--sampvox"), 0,
      std::string("Sample random points within x mm sphere seed voxels (e.g. --sampvox=5). Default=0"),
-     false, requires_argument),
+     true, requires_argument),
    randfib(std::string("--randfib"), 0,
      std::string("Default 0. Set to 1 to randomly sample initial fibres (with f > fibthresh). \n                        Set to 2 to sample in proportion fibres (with f>fibthresh) to f. \n                        Set to 3 to sample ALL populations at random (even if f<fibthresh)"),
      false, requires_argument),

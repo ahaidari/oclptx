@@ -33,6 +33,7 @@
 #define  OCLPTX_SAMPLEMANAGER_H_
 
 #include "newimage/newimageall.h"
+#include "miscmaths/miscmaths.h"
 #include "oclptxOptions.h"
 #include "customtypes.h"
 #include <iostream>
@@ -46,23 +47,32 @@ using namespace NEWIMAGE;
 // define before CL headers inclusion
 
 
-class SampleManager{
+class SampleManager
+{
 	public:
       static SampleManager& GetInstance();
       ~SampleManager();
       
-	  //As of February 19th, you require 2 arguments to parse: a set of data, and a mask.
-	  //Currently, you can load a preset mask (we are missing the initializing seedmask in our sample space, so for now,
-	  //We just use a given mask, although the concept is the same. That volume is stored in a member variable here.
+      //CLI Example: ./oclptx -s bedpostXdata/merged --simple --sampvox=2 -m bedpostXdata/nodif_brain_mask.nii.gz -x bedpostXdata/seedFile 
+      //--simple = loading basic data form. Other types have not been implemented (MANDATORY)
+      //--sampvox = Sample random points within x mm sphere seed voxels (MANDATORY)
+      // -m = Brain Mask file (MANDATORY)
+      // -x = Seedmask file (OPTIONAL). If no seedmask file is specified, the program will seed using a single point: the midpoint of the brainmask data.
       void ParseCommandLine(int argc, char** argv);
-      void LoadBedpostData(const std::string& aBasename);
-
-      //Getters
+      
+      //Getters: Data
       float const GetThetaData(int aFiberNum, int aSamp, int aX, int aY, int aZ);
       float const GetPhiData(int aFiberNum, int aSamp, int aX, int aY, int aZ);
       float const GetfData(int aFiberNum, int aSamp, int aX, int aY, int aZ);
-      const unsigned short int* GetSeedMaskToArray();
-      const volume<short int>* GetSeedMask();
+      const volume<short int>* GetBrainMask();
+      const unsigned short int* GetBrainMaskToArray();
+      
+      //Getters: Counts (Particles Default = 5000, Steps Default = 2000)
+      int const GetNumParticles() {return _nParticles;}
+      int const GetNumMaxSteps() {return _nMaxSteps;}
+      
+      //Getters: Randomly seeded particles (uses midpoint of _brainMask if no seedfile is specified)
+      std::vector<float4> const GetSeedParticles() {return _seedParticles;}
       
       //WARNING: If you use these getters, you must access data from the BedpostXData vector as follows:
       //Ex Theta: thetaData.data.at(aFiberNum)[(aSamp)*(nx*ny*nz) + (aZ)*(nx*ny) + (aY)*nx + (aX)]
@@ -75,30 +85,36 @@ class SampleManager{
 
 	private:
       SampleManager();
-
+      void LoadBedpostData(const std::string& aBasename);      
       void LoadBedpostDataHelper(
         const std::string& aThetaSampleName,
         const std::string& aPhiSampleName,
         const std::string& afSampleName,
         const volume<float>& aMask = volume<float>(),
         const int aFiberNum = 0);
-        
       void PopulateMemberParameters(
         const volume4D<float> aLoadedData,
         BedpostXData& aTargetContainer,
         const volume<float> aMaskParams,
         const int aFiberNum);
-
+      void GenerateSeedParticles(float aSampleVoxel);
+      void GenerateSeedParticlesHelper(float4 aSeed, float aSampleVoxel);
       std::string IntTostring(const int& value);
-
-      //Members
+      
+      //Statics
       static SampleManager* _manager;
-
       oclptxOptions& _oclptxOptions;
-      volume<short int> _seedMask;
+      //Particles
+      std::vector<float4> _seedParticles;
+      std::vector<int4> _rootVertices;
+      //BedpostData
       BedpostXData _thetaData;
       BedpostXData _phiData;
       BedpostXData _fData;
+      volume<short int> _brainMask;
+      //Input Constants
+      int _nParticles; //Default 5000
+      int _nMaxSteps; //Default 2000
 };
 
 #endif
