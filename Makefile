@@ -13,10 +13,10 @@ DBGFLAGS=-g
 
 # TODO: Move LIB_OPENCL and INC_OPENCL into systemvars.mk
 # test b/w AMD/Nvidia hardware?
-#LIB_OPENCL=/usr/lib64/nvidia
-LIB_OPENCL=/opt/AMD-APP-SDK-v2.8-RC-lnx64/lib/x86_64
-#INC_OPENCL=/usr/local/cuda-5.5/include
-INC_OPENCL=/opt/AMD-APP-SDK-v2.8-RC-lnx64/include
+LIB_OPENCL=/usr/lib64/nvidia
+#LIB_OPENCL=/opt/AMD-APP-SDK-v2.8-RC-lnx64/lib/x86_64
+INC_OPENCL=/usr/local/cuda-5.5/include
+#INC_OPENCL=/opt/AMD-APP-SDK-v2.8-RC-lnx64/include
 CPP11 = -std=c++0x
 
 USRINCFLAGS = -I${INC_NEWMAT} -I${INC_NEWRAN} -I${INC_CPROB} -I${INC_PROB} -I${INC_BOOST} -I${INC_ZLIB} -I${INC_OPENCL} ${CPP11}
