@@ -211,6 +211,40 @@ void SampleManager::ParseCommandLine(int argc, char** argv)
           NEWIMAGE::read_volume(_brainMask,
             _oclptxOptions.seedref.value());
         }
+        if(_oclptxOptions.rubbishfile.value() != "")
+        {
+           NEWIMAGE::read_volume(_exclusionMask,
+           _oclptxOptions.rubbishfile.value());
+           std::cout<<"Successfully loaded Exclusion Mask"<<endl;
+        }
+        if(_oclptxOptions.stopfile.value() != "")
+        {
+          NEWIMAGE::read_volume(_terminationMask,
+          _oclptxOptions.stopfile.value());
+          std::cout<<"Successfully loaded Termination Mask"<<endl;
+        }
+        if(_oclptxOptions.waypoints.set())
+        {
+          std::string waypoints = _oclptxOptions.waypoints.value();
+          std::istringstream ss(waypoints);
+          std::string wayMaskLocation;
+          while(std::getline(ss,wayMaskLocation,','))
+          {
+            NEWIMAGE::volume<short int> vol;
+            NEWIMAGE::read_volume(vol, wayMaskLocation);
+            _wayMasks.push_back(vol);
+          }
+          cout<<"Successfully loaded " << _wayMasks.size() << " WayMasks"<<endl;
+        }
+        _showPaths = _oclptxOptions.showPaths.value();
+        if(_showPaths)
+        {
+          cout <<"SHOW PATHS IS TRUE"<<endl;
+        }
+        else
+        {
+          cout <<"SHOW PATHS IS FALSE"<< endl;
+        }
         this->GenerateSeedParticles(_oclptxOptions.sampvox.value());
     }
     else if (_oclptxOptions.network.value())
@@ -275,6 +309,7 @@ void SampleManager::GenerateSeedParticlesHelper(
       float dx,dy,dz;
       float radSq = aSampleVoxel*aSampleVoxel;
       
+      // TODO
       // rand not seeded properly, on purpose(want the same data set)
       // seed it with sys clock later.
       
@@ -298,41 +333,77 @@ void SampleManager::GenerateSeedParticlesHelper(
 
 const NEWIMAGE::volume<short int>* SampleManager::GetBrainMask()
 {
-     return &_brainMask;
+  return &_brainMask;
 }
 
 const unsigned short int* SampleManager::GetBrainMaskToArray()
 {
-    const int maxZ = _brainMask.maxz();
-    const int maxY = _brainMask.maxy();
-    const int maxX = _brainMask.maxx();
-    const int minZ = _brainMask.minz();
-    const int minY = _brainMask.miny();
-    const int minX = _brainMask.minx();
-    const int sizeX = _brainMask.xsize();
-    const int sizeY = _brainMask.ysize();
-    const int sizeZ = _brainMask.zsize();
-    std::cout << "BrainMask Size "<< "x = " << _brainMask.xsize()<< " y= " <<
-      _brainMask.ysize()<< " z = "<< _brainMask.zsize()<<endl;
-    std::cout << "BrainMask Min "<< "x = " << _brainMask.minx()<< " y= " <<
-      _brainMask.miny()<< " z = "<< _brainMask.minz()<<endl;
-    std::cout << "BrainMask Max "<< "x = " << _brainMask.maxx()<< " y= " <<
-      _brainMask.maxy()<< " z = "<< _brainMask.maxz()<<endl;    
+  return GetMaskToArray(_brainMask);
+}
 
-    unsigned short int* target =
-      new unsigned short int[sizeX * sizeY * sizeZ];
+const NEWIMAGE::volume<short int>* SampleManager::GetExclusionMask()
+{
+  return &_exclusionMask;
+}
 
-    for (int z = minZ; z <= maxZ; z++)
+const unsigned short int* SampleManager::GetExclusionMaskToArray()
+{
+  return GetMaskToArray(_exclusionMask);
+}
+
+const NEWIMAGE::volume<short int>* SampleManager::GetTerminationMask()
+{
+  return &_terminationMask;
+}
+
+const unsigned short int* SampleManager::GetTerminationMaskToArray()
+{
+  return GetMaskToArray(_terminationMask);
+}
+
+const std::vector<unsigned short int*> SampleManager::GetWayMasksToVector()
+{
+  vector<unsigned short int*> waymasks;
+  for (unsigned int i = 0; i < _wayMasks.size(); i++)
+  {
+    waymasks.push_back(GetMaskToArray(_wayMasks.at(i)));
+  }
+  return waymasks;
+}
+
+
+unsigned short int* SampleManager::GetMaskToArray(NEWIMAGE::volume<short int> aMask)
+{
+  const int maxZ = aMask.maxz();
+  const int maxY = aMask.maxy();
+  const int maxX = aMask.maxx();
+  const int minZ = aMask.minz();
+  const int minY = aMask.miny();
+  const int minX = aMask.minx();
+  const int sizeX = aMask.xsize();
+  const int sizeY = aMask.ysize();
+  const int sizeZ = aMask.zsize();
+  std::cout << "Mask Size "<< "x = " << aMask.xsize()<< " y= " <<
+    aMask.ysize()<< " z = "<< aMask.zsize()<<endl;
+  std::cout << "Mask Min "<< "x = " << aMask.minx()<< " y= " <<
+    aMask.miny()<< " z = "<< aMask.minz()<<endl;
+  std::cout << "Mask Max "<< "x = " << aMask.maxx()<< " y= " <<
+    aMask.maxy()<< " z = "<< aMask.maxz()<<endl;    
+
+  unsigned short int* target =
+    new unsigned short int[sizeX * sizeY * sizeZ];
+
+  for (int z = minZ; z <= maxZ; z++)
+  {
+    for (int y = minY; y <= maxY; y++)
     {
-      for (int y = minY; y <= maxY; y++)
+      for (int x = minX; x <= maxX; x++)
       {
-        for (int x = minX; x <= maxX; x++)
-        {
-              target[x*sizeY*sizeZ + y*sizeZ + z] = _brainMask(x,y,z);
-        }
+            target[x*sizeY*sizeZ + y*sizeZ + z] = aMask(x,y,z);
       }
     }
-    return target;
+  }
+  return target;
 }
 
 float const SampleManager::GetThetaData(

@@ -98,17 +98,38 @@ int main(int argc, char *argv[] )
 
     unsigned int n_particles = s_manager.GetNumParticles();
     unsigned int max_steps = s_manager.GetNumMaxSteps();
+    const oclptxOptions& options = s_manager.GetOclptxOptions();
 
     const float4* initial_positions =
       s_manager.GetSeedParticles()->data();
       
-    const unsigned short int* brain_mask =
-      s_manager.GetBrainMaskToArray();
+    vector<unsigned short int*> way_masks =
+      s_manager.GetWayMasksToVector();
+      
+    std::cout<<"Data, WayMask Tests: \n";  
+    for (unsigned int i = 0; i < way_masks.size(); i++)
+    {
+      for (unsigned int x = 45; x<55; x++)
+      {
+        for (unsigned int y=45; y<55; y++)
+        {
+          for (unsigned int z=25; z<35; z++)
+          {
+            unsigned short int wmask = 
+              way_masks.at(i)[ x*(100*100) + y*100 + z];
+            
+            std::cout<<"("<<x<<","<<y<<","<<z<<"): "<< wmask<<"\n";          
+          }
+        }
+      }
+    }
     
-    float4 test_point; 
-    test_point.s0 = 51.0;
-    test_point.s1 = 34.0;
-    test_point.s2 = 24.0;
+    //std::cout<<"BMaskTest: "<< s_manager.GetBrainMask( 51,51,30) <<"\n";
+    
+    //float4 test_point; 
+    //test_point.s0 = 51.0;
+    //test_point.s1 = 34.0;
+    //test_point.s2 = 24.0;
       
     //for(unsigned int t = 1; t < theta_data->ns; t++)
     //{
@@ -152,48 +173,48 @@ int main(int argc, char *argv[] )
     // somwhere in here, this should initialize, based on s_manager
     // actions:
     //
-    OclEnv environment("basic");
-    unsigned int n_devices = environment.HowManyDevices();
-    //
-    // and then (this is a naive, "serial" implementation;
-    //
+    //OclEnv environment("basic");
+    //unsigned int n_devices = environment.HowManyDevices();
+    ////
+    //// and then (this is a naive, "serial" implementation;
+    ////
 
-    OclPtxHandler handler(environment.GetContext(),
-                          environment.GetCq(0),
-                          environment.GetKernel(0));
+    //OclPtxHandler handler(environment.GetContext(),
+                          //environment.GetCq(0),
+                          //environment.GetKernel(0));
 
-    std::cout<<"init done\n";
-    handler.WriteSamplesToDevice( f_data,
-                                  phi_data,
-                                  theta_data,
-                                  static_cast<unsigned int>(1),
-                                  brain_mask);
-    std::cout<<"samples done\n";
-    handler.WriteInitialPosToDevice(  initial_positions,
-                                      n_particles,
-                                      max_steps,
-                                      n_devices,
-                                      static_cast<unsigned int>(0));
-    std::cout<<"pos done\n";
-    handler.SingleBufferInit(n_particles, max_steps);
-    //handler.DoubleBufferInit( n_particles/2, max_steps);
-    std::cout<<"dbuff done\n";
+    //std::cout<<"init done\n";
+    //handler.WriteSamplesToDevice( f_data,
+                                  //phi_data,
+                                  //theta_data,
+                                  //static_cast<unsigned int>(1),
+                                  //brain_mask);
+    //std::cout<<"samples done\n";
+    //handler.WriteInitialPosToDevice(  initial_positions,
+                                      //n_particles,
+                                      //max_steps,
+                                      //n_devices,
+                                      //static_cast<unsigned int>(0));
+    //std::cout<<"pos done\n";
+    //handler.SingleBufferInit(n_particles, max_steps);
+    ////handler.DoubleBufferInit( n_particles/2, max_steps);
+    //std::cout<<"dbuff done\n";
 
-    std::cout<<"Total GPU Memory Allocated (MB): "<<
-      handler.GpuMemUsed()/1e6 << "\n";
-    std::cout<<"Press Any Button To Continue...\n";
-    std::cin.get();
+    //std::cout<<"Total GPU Memory Allocated (MB): "<<
+      //handler.GpuMemUsed()/1e6 << "\n";
+    //std::cout<<"Press Any Button To Continue...\n";
+    //std::cin.get();
 
-    handler.Interpolate();
-    std::cout<<"interp done\n";
-    //handler.Reduce();
-    //std::cout<<"reduce done\n";
     //handler.Interpolate();
     //std::cout<<"interp done\n";
+    ////handler.Reduce();
+    ////std::cout<<"reduce done\n";
+    ////handler.Interpolate();
+    ////std::cout<<"interp done\n";
 
-    handler.ParticlePathsToFile();
+    //handler.ParticlePathsToFile();
 
-    delete[] brain_mask;
+    //delete[] brain_mask;
   }
 
   std::cout<<"\n\nExiting...\n\n";
