@@ -237,14 +237,6 @@ void SampleManager::ParseCommandLine(int argc, char** argv)
           cout<<"Successfully loaded " << _wayMasks.size() << " WayMasks"<<endl;
         }
         _showPaths = _oclptxOptions.showPaths.value();
-        if(_showPaths)
-        {
-          cout <<"SHOW PATHS IS TRUE"<<endl;
-        }
-        else
-        {
-          cout <<"SHOW PATHS IS FALSE"<< endl;
-        }
         this->GenerateSeedParticles(_oclptxOptions.sampvox.value());
     }
     else if (_oclptxOptions.network.value())
